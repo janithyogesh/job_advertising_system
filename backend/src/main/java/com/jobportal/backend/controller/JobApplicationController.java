@@ -1,5 +1,6 @@
 package com.jobportal.backend.controller;
 
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -32,18 +33,20 @@ public class JobApplicationController {
 
     @PostMapping("/apply")
     public String applyForJob(
-            @RequestParam Long userId,
-            @RequestParam Long jobId) {
+            @RequestParam Long jobId,
+            Authentication authentication) {
 
-        // Prevent duplicate application
+        // Extract email from JWT
+        String email = authentication.getName();
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
         if (applicationRepository
-                .findByUserIdAndJobId(userId, jobId)
+                .findByUserIdAndJobId(user.getId(), jobId)
                 .isPresent()) {
             throw new RuntimeException("You already applied for this job");
         }
-
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
 
         Job job = jobRepository.findById(jobId)
                 .orElseThrow(() -> new RuntimeException("Job not found"));
