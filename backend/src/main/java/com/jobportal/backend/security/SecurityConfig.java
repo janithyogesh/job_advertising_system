@@ -26,12 +26,14 @@ public class SecurityConfig {
                 .requestMatchers("/api/auth/**").permitAll()
                 .anyRequest().authenticated()
             )
+            .sessionManagement(session -> session.disable())
+            .formLogin(form -> form.disable())
+            .httpBasic(basic -> basic.disable())
+            // 🔥 THIS IS THE CRITICAL LINE 🔥
             .addFilterBefore(
                 jwtAuthenticationFilter,
                 UsernamePasswordAuthenticationFilter.class
-            )
-            .formLogin(form -> form.disable())
-            .httpBasic(basic -> basic.disable());
+            );
 
         return http.build();
     }

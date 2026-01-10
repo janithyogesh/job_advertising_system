@@ -1,5 +1,7 @@
 package com.jobportal.backend.entity;
 
+import java.time.LocalDateTime;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -8,33 +10,31 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
 
 @Entity
-@Table(
-    name = "job_applications",
-    uniqueConstraints = {
-        @UniqueConstraint(columnNames = {"user_id", "job_id"})
-    }
-)
+@Table(name = "job_applications")
 public class JobApplication {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "user_id")
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "job_id")
+    @ManyToOne
+    @JoinColumn(name = "job_id", nullable = false)
     private Job job;
 
     @Column(nullable = false)
-    private String status = "APPLIED";
+    private String status;
 
-    // ---------- GETTERS ----------
+    @Column(nullable = false)
+    private LocalDateTime appliedAt;
+
+    // ---------- getters & setters ----------
+
     public Long getId() {
         return id;
     }
@@ -43,24 +43,31 @@ public class JobApplication {
         return user;
     }
 
-    public Job getJob() {
-        return job;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    // ---------- SETTERS ----------
     public void setUser(User user) {
         this.user = user;
+    }
+
+    public Job getJob() {
+        return job;
     }
 
     public void setJob(Job job) {
         this.job = job;
     }
 
+    public String getStatus() {
+        return status;
+    }
+
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public LocalDateTime getAppliedAt() {
+        return appliedAt;
+    }
+
+    public void setAppliedAt(LocalDateTime appliedAt) {
+        this.appliedAt = appliedAt;
     }
 }
