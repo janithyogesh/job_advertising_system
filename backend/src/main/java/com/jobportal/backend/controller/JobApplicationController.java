@@ -36,14 +36,13 @@ public class JobApplicationController {
             @RequestParam Long jobId,
             Authentication authentication) {
 
-        // Extract email from JWT
         String email = authentication.getName();
 
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         if (applicationRepository
-                .findByUserIdAndJobId(user.getId(), jobId)
+                .findByUser_IdAndJob_Id(user.getId(), jobId)
                 .isPresent()) {
             throw new RuntimeException("You already applied for this job");
         }
@@ -54,6 +53,7 @@ public class JobApplicationController {
         JobApplication application = new JobApplication();
         application.setUser(user);
         application.setJob(job);
+        application.setStatus("APPLIED");
 
         applicationRepository.save(application);
 

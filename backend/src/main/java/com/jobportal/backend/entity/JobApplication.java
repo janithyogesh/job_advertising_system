@@ -9,6 +9,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 
 @Entity
@@ -28,12 +29,20 @@ public class JobApplication {
     private Job job;
 
     @Column(nullable = false)
-    private String status;
+    private String status; // APPLIED, APPROVED, REJECTED
 
-    @Column(nullable = false)
+    @Column(name = "applied_at")
     private LocalDateTime appliedAt;
 
-    // ---------- getters & setters ----------
+    @PrePersist
+    public void onCreate() {
+        this.appliedAt = LocalDateTime.now();
+        if (this.status == null) {
+            this.status = "APPLIED";
+        }
+    }
+
+    // ===== GETTERS & SETTERS =====
 
     public Long getId() {
         return id;
@@ -43,28 +52,32 @@ public class JobApplication {
         return user;
     }
 
-    public void setUser(User user) {
-        this.user = user;
-    }
-
     public Job getJob() {
         return job;
-    }
-
-    public void setJob(Job job) {
-        this.job = job;
     }
 
     public String getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
     public LocalDateTime getAppliedAt() {
         return appliedAt;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
+
+    public void setJob(Job job) {
+        this.job = job;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 
     public void setAppliedAt(LocalDateTime appliedAt) {

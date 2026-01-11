@@ -10,11 +10,11 @@ import com.jobportal.backend.entity.JobApplication;
 public interface JobApplicationRepository
         extends JpaRepository<JobApplication, Long> {
 
-    // ✔ prevent duplicate applications
-    Optional<JobApplication> findByUserIdAndJobId(Long userId, Long jobId);
+    // prevent duplicate applications
+    Optional<JobApplication> findByUser_IdAndJob_Id(Long userId, Long jobId);
 
-    boolean existsByUserIdAndJobId(Long userId, Long jobId);
+    boolean existsByUser_IdAndJob_Id(Long userId, Long jobId);
 
-    // ✔ REQUIRED for EmployerController
-    List<JobApplication> findByJobId(Long jobId);
+    // FOR EMPLOYER CONTROLLER
+    List<JobApplication> findByJob_Id(Long jobId);
 }
