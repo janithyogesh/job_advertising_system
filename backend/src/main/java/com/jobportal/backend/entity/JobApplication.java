@@ -2,6 +2,7 @@ package com.jobportal.backend.entity;
 
 import java.time.LocalDateTime;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -9,6 +10,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 
@@ -29,10 +31,13 @@ public class JobApplication {
     private Job job;
 
     @Column(nullable = false)
-    private String status; // APPLIED, APPROVED, REJECTED
+    private String status;
 
     @Column(name = "applied_at")
     private LocalDateTime appliedAt;
+
+    @OneToOne(mappedBy = "application", cascade = CascadeType.ALL)
+    private CvFile cvFile;
 
     @PrePersist
     public void onCreate() {
@@ -42,7 +47,7 @@ public class JobApplication {
         }
     }
 
-    // ===== GETTERS & SETTERS =====
+    // ===== getters & setters =====
 
     public Long getId() {
         return id;
@@ -64,8 +69,8 @@ public class JobApplication {
         return appliedAt;
     }
 
-    public void setId(Long id) {
-        this.id = id;
+    public CvFile getCvFile() {
+        return cvFile;
     }
 
     public void setUser(User user) {
@@ -80,7 +85,7 @@ public class JobApplication {
         this.status = status;
     }
 
-    public void setAppliedAt(LocalDateTime appliedAt) {
-        this.appliedAt = appliedAt;
+    public void setCvFile(CvFile cvFile) {
+        this.cvFile = cvFile;
     }
 }

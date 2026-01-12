@@ -1,15 +1,25 @@
 package com.jobportal.backend.controller;
 
+import java.io.File;
+import java.io.IOException;
 import java.time.LocalDate;
-import java.util.List;
 
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
-import com.jobportal.backend.dto.JobSeekerApplicationResponse;
-import com.jobportal.backend.entity.*;
-import com.jobportal.backend.repository.*;
+import com.jobportal.backend.entity.CvFile;
+import com.jobportal.backend.entity.Job;
+import com.jobportal.backend.entity.JobApplication;
+import com.jobportal.backend.entity.User;
+import com.jobportal.backend.repository.CvFileRepository;
+import com.jobportal.backend.repository.JobApplicationRepository;
+import com.jobportal.backend.repository.JobRepository;
+import com.jobportal.backend.repository.UserRepository;
 
 @RestController
 @RequestMapping("/api/applications")
@@ -18,23 +28,36 @@ public class JobApplicationController {
     private final JobApplicationRepository applicationRepository;
     private final UserRepository userRepository;
     private final JobRepository jobRepository;
+    private final CvFileRepository cvFileRepository;
+
+    private static final String UPLOAD_DIR = "uploads/cv/";
 
     public JobApplicationController(
             JobApplicationRepository applicationRepository,
             UserRepository userRepository,
-            JobRepository jobRepository) {
+            JobRepository jobRepository,
+            CvFileRepository cvFileRepository) {
 
         this.applicationRepository = applicationRepository;
         this.userRepository = userRepository;
         this.jobRepository = jobRepository;
+        this.cvFileRepository = cvFileRepository;
     }
 
-    // ================= APPLY FOR JOB =================
     @PreAuthorize("hasRole('JOB_SEEKER')")
-    @PostMapping("/apply")
+    @PostMapping(value = "/apply", consumes = "multipart/form-data")
     public String applyForJob(
             @RequestParam Long jobId,
-            Authentication authentication) {
+            @RequestParam MultipartFile cv,
+            Authentication authentication) throws IOException {
+
+        if (!cv.getContentType().equals("application/pdf")) {
+            throw new RuntimeException("Only PDF files allowed");
+        }
+
+        if (cv.getSize() > 5 * 1024 * 1024) {
+            throw new RuntimeException("File size exceeds 5MB");
+        }
 
         String email = authentication.getName();
 
@@ -44,57 +67,35 @@ public class JobApplicationController {
         Job job = jobRepository.findById(jobId)
                 .orElseThrow(() -> new RuntimeException("Job not found"));
 
-        // Deadline check
-        if (job.getDeadline() != null &&
-            job.getDeadline().isBefore(LocalDate.now())) {
-
-            job.setStatus(JobStatus.EXPIRED);
-            jobRepository.save(job);
+        if (job.getDeadline().isBefore(LocalDate.now())) {
             throw new RuntimeException("Job deadline has passed");
-        }
-
-        if (job.getStatus() != JobStatus.OPEN) {
-            throw new RuntimeException("Job is not open");
         }
 
         if (applicationRepository
                 .findByUser_IdAndJob_Id(user.getId(), jobId)
                 .isPresent()) {
-            throw new RuntimeException("You already applied");
+            throw new RuntimeException("Already applied");
         }
 
         JobApplication application = new JobApplication();
         application.setUser(user);
         application.setJob(job);
-        application.setStatus("APPLIED");
 
         applicationRepository.save(application);
 
-        return "Application submitted successfully";
-    }
+        File dir = new File(UPLOAD_DIR);
+        if (!dir.exists()) dir.mkdirs();
 
-    // ================= JOB SEEKER DASHBOARD =================
-    @PreAuthorize("hasRole('JOB_SEEKER')")
-    @GetMapping("/my")
-    public List<JobSeekerApplicationResponse> getMyApplications(
-            Authentication authentication) {
+        String filePath = UPLOAD_DIR + application.getId() + "_" + cv.getOriginalFilename();
+        cv.transferTo(new File(filePath));
 
-        String email = authentication.getName();
+        CvFile cvFile = new CvFile();
+        cvFile.setFileName(cv.getOriginalFilename());
+        cvFile.setFilePath(filePath);
+        cvFile.setApplication(application);
 
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        cvFileRepository.save(cvFile);
 
-        List<JobApplication> applications =
-                applicationRepository.findByUser_Id(user.getId());
-
-        return applications.stream()
-                .map(app -> new JobSeekerApplicationResponse(
-                        app.getId(),
-                        app.getJob().getTitle(),
-                        app.getJob().getCompany(),
-                        app.getStatus(),
-                        app.getAppliedAt()
-                ))
-                .toList();
+        return "Application submitted with CV successfully";
     }
 }
