@@ -1,12 +1,16 @@
 package com.jobportal.backend.controller;
 
+import java.util.List;
+
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.jobportal.backend.dto.MyApplicationResponse;
 import com.jobportal.backend.entity.Job;
 import com.jobportal.backend.entity.JobApplication;
 import com.jobportal.backend.entity.User;
@@ -62,4 +66,23 @@ public class JobApplicationController {
 
         return "Application submitted successfully";
     }
+
+    @PreAuthorize("hasRole('JOB_SEEKER')")
+    @GetMapping("/my")
+    public List<MyApplicationResponse> myApplications(Authentication authentication) {
+
+    String email = authentication.getName();
+
+    return applicationRepository.findByUser_Email(email)
+            .stream()
+            .map(app -> new MyApplicationResponse(
+                    app.getId(),
+                    app.getJob().getTitle(),
+                    app.getJob().getCompany(),
+                    app.getStatus(),
+                    app.getAppliedAt()
+            ))
+            .toList();
+}
+
 }

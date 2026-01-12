@@ -17,4 +17,7 @@ public interface JobApplicationRepository
 
     // FOR EMPLOYER CONTROLLER
     List<JobApplication> findByJob_Id(Long jobId);
+
+    List<JobApplication> findByUser_Email(String email);
+
 }
