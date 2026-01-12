@@ -20,7 +20,6 @@ public class AuthController {
     private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
 
-    // ✅ THIS IS THE CONSTRUCTOR YOU WERE ASKING ABOUT
     public AuthController(
             JwtService jwtService,
             PasswordEncoder passwordEncoder,
@@ -35,13 +34,22 @@ public class AuthController {
     @PostMapping("/register")
     public AuthResponse register(@RequestBody User user) {
 
+        // ✅ VALIDATE ROLE
+        if (!"JOB_SEEKER".equals(user.getRole()) &&
+            !"EMPLOYER".equals(user.getRole())) {
+            throw new RuntimeException("Invalid role");
+        }
+
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-        user.setRole("JOB_SEEKER");
         user.setEnabled(true);
 
         userRepository.save(user);
 
-        String token = jwtService.generateToken(user.getEmail(), user.getRole());
+        String token = jwtService.generateToken(
+                user.getEmail(),
+                user.getRole()
+        );
+
         return new AuthResponse(token);
     }
 
@@ -52,11 +60,16 @@ public class AuthController {
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("Invalid credentials"));
 
-        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+        if (!passwordEncoder.matches(
+                request.getPassword(),
+                user.getPassword())) {
             throw new RuntimeException("Invalid credentials");
         }
 
-        String token = jwtService.generateToken(user.getEmail(), user.getRole());
+        String token = jwtService.generateToken(
+                user.getEmail(),
+                user.getRole()
+        );
 
         return new AuthResponse(token);
     }

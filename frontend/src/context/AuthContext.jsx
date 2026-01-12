@@ -10,22 +10,41 @@ export const AuthProvider = ({ children }) => {
   );
 
   useEffect(() => {
-    if (token) {
-      try {
-        const decoded = jwtDecode(token);
+  if (!token) return;
 
-        setUser({
-          email: decoded.sub,
-          role: decoded.role,
-        });
+  try {
+    const decoded = jwtDecode(token);
 
-        localStorage.setItem("token", token);
-      } catch (err) {
-        console.error("Invalid token", err);
-        logout();
-      }
+    console.log("✅ DECODED TOKEN:", decoded); // 👈 ADD THIS
+
+    let role = null;
+
+    // ✅ Case 1: role exists
+    if (decoded.role) {
+      role = decoded.role.replace("ROLE_", "");
     }
-  }, [token]);
+
+    // ✅ Case 2: authorities array
+    if (!role && decoded.authorities?.length) {
+      role = decoded.authorities[0].replace("ROLE_", "");
+    }
+
+    if (!role) {
+      throw new Error("Role not found in token");
+    }
+
+    setUser({
+      email: decoded.sub,
+      role,
+    });
+
+    localStorage.setItem("token", token);
+  } catch (err) {
+    console.error("Invalid token", err);
+    logout();
+  }
+}, [token]);
+
 
   const login = (jwtToken) => {
     setToken(jwtToken);

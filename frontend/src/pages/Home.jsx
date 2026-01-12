@@ -2,29 +2,30 @@ import { Link } from "react-router-dom";
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-6xl mx-auto py-20 text-center">
-        <h1 className="text-4xl font-bold mb-4">
-          Find Your Next Job Opportunity
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+      <div className="max-w-6xl mx-auto px-6 py-20 text-center">
+        <h1 className="text-5xl font-extrabold text-gray-900 mb-6">
+          Find Your Next Job 🚀
         </h1>
 
-        <p className="text-gray-600 mb-8">
-          Browse jobs from companies, shops, and individuals.
+        <p className="text-xl text-gray-600 mb-10">
+          Browse jobs, apply instantly, and track your application status.
+          Employers can post jobs and manage applicants with ease.
         </p>
 
-        <div className="flex justify-center gap-4">
+        <div className="flex justify-center gap-6">
           <Link
             to="/jobs"
-            className="bg-blue-600 text-white px-6 py-3 rounded"
+            className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-xl text-lg font-semibold shadow"
           >
-            Browse Jobs
+            Find Jobs
           </Link>
 
           <Link
             to="/register"
-            className="border border-blue-600 text-blue-600 px-6 py-3 rounded"
+            className="bg-white border border-gray-300 hover:bg-gray-100 px-8 py-4 rounded-xl text-lg font-semibold shadow"
           >
-            Create Account
+            Post a Job
           </Link>
         </div>
       </div>
