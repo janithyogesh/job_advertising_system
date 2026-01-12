@@ -1,5 +1,6 @@
 package com.jobportal.backend.controller;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -31,6 +32,8 @@ public class JobApplicationController {
         this.jobRepository = jobRepository;
     }
 
+    // 🔒 ONLY JOB SEEKERS CAN APPLY
+    @PreAuthorize("hasRole('JOB_SEEKER')")
     @PostMapping("/apply")
     public String applyForJob(
             @RequestParam Long jobId,

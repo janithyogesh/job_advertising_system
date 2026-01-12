@@ -2,6 +2,7 @@ package com.jobportal.backend.security;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
+import java.util.Map;
 
 import javax.crypto.SecretKey;
 
@@ -25,9 +26,11 @@ public class JwtService {
         );
     }
 
-    public String generateToken(String email) {
+    // 🔐 Include ROLE in token
+    public String generateToken(String email, String role) {
         return Jwts.builder()
                 .subject(email)
+                .claims(Map.of("role", role))
                 .issuedAt(new Date())
                 .expiration(
                         new Date(System.currentTimeMillis() + EXPIRATION_TIME)
@@ -43,5 +46,14 @@ public class JwtService {
                 .parseSignedClaims(token)
                 .getPayload()
                 .getSubject();
+    }
+
+    public String extractRole(String token) {
+        return Jwts.parser()
+                .verifyWith(getSigningKey())
+                .build()
+                .parseSignedClaims(token)
+                .getPayload()
+                .get("role", String.class);
     }
 }

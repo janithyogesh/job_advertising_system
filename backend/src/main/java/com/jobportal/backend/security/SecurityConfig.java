@@ -10,7 +10,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
-@EnableMethodSecurity // 🔥 REQUIRED for @PreAuthorize
+@EnableMethodSecurity // 🔥 REQUIRED FOR @PreAuthorize
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
