@@ -1,10 +1,35 @@
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Login from "./pages/Login";
+import ProtectedRoute from "./components/ProtectedRoute";
+
 function App() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <h1 className="text-4xl font-bold text-blue-600">
-        Tailwind v4 is working 🚀
-      </h1>
-    </div>
+    <BrowserRouter>
+      <Routes>
+        {/* Public */}
+        <Route path="/login" element={<Login />} />
+
+        {/* Temporary test route */}
+        <Route
+          path="/"
+          element={
+            <div className="text-3xl p-10 text-center">
+              Frontend is working 🚀
+            </div>
+          }
+        />
+
+        {/* Example protected route */}
+        <Route
+          path="/employer"
+          element={
+            <ProtectedRoute role="EMPLOYER">
+              <div className="p-10 text-xl">Employer Dashboard</div>
+            </ProtectedRoute>
+          }
+        />
+      </Routes>
+    </BrowserRouter>
   );
 }
 
