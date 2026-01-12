@@ -1,47 +1,52 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import api from "../services/api";
+import { jwtDecode } from "jwt-decode";
 
-const AuthContext = createContext();
+const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [token, setToken] = useState(
+    localStorage.getItem("token")
+  );
 
-  // Load user from localStorage on refresh
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    const role = localStorage.getItem("role");
-    const email = localStorage.getItem("email");
+    if (token) {
+      try {
+        const decoded = jwtDecode(token);
 
-    if (token && role && email) {
-      setUser({ email, role });
+        setUser({
+          email: decoded.sub,
+          role: decoded.role,
+        });
+
+        localStorage.setItem("token", token);
+      } catch (err) {
+        console.error("Invalid token", err);
+        logout();
+      }
     }
+  }, [token]);
 
-    setLoading(false);
-  }, []);
-
-  const login = async (email, password) => {
-    const response = await api.post("/auth/login", {
-      email,
-      password,
-    });
-
-    const { token, role } = response.data;
-
-    localStorage.setItem("token", token);
-    localStorage.setItem("role", role);
-    localStorage.setItem("email", email);
-
-    setUser({ email, role });
+  const login = (jwtToken) => {
+    setToken(jwtToken);
   };
 
   const logout = () => {
-    localStorage.clear();
     setUser(null);
+    setToken(null);
+    localStorage.removeItem("token");
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, loading }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        token,
+        login,
+        logout,
+        isAuthenticated: !!user,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

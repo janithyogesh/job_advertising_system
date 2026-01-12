@@ -1,30 +1,37 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import api from "../services/api";
 import { useAuth } from "../context/AuthContext";
 
-const Login = () => {
+export default function Login() {
+  const navigate = useNavigate();
+  const { login } = useAuth();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const { login } = useAuth();
-  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    setLoading(true);
 
     try {
-      await login(email, password);
+      const res = await api.post("/auth/login", {
+        email,
+        password,
+      });
 
-      const role = localStorage.getItem("role");
+      login(res.data.token);
 
-      if (role === "EMPLOYER") {
-        navigate("/employer");
-      } else {
-        navigate("/jobseeker");
-      }
+      navigate("/dashboard");
     } catch (err) {
-      setError("Invalid credentials");
+      setError(
+        err.response?.data?.message || "Invalid credentials"
+      );
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -32,17 +39,20 @@ const Login = () => {
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <form
         onSubmit={handleSubmit}
-        className="bg-white p-6 rounded shadow-md w-96"
+        className="bg-white p-8 rounded-xl shadow w-96"
       >
-        <h2 className="text-2xl font-bold mb-4 text-center">Login</h2>
+        <h2 className="text-2xl font-bold mb-6 text-center">
+          Login
+        </h2>
 
-        {error && <p className="text-red-500 mb-3">{error}</p>}
+        {error && (
+          <div className="mb-3 text-red-600 text-sm">{error}</div>
+        )}
 
         <input
           type="email"
           placeholder="Email"
-          className="w-full p-2 mb-3 border rounded"
-          value={email}
+          className="w-full p-2 border rounded mb-3"
           onChange={(e) => setEmail(e.target.value)}
           required
         />
@@ -50,18 +60,18 @@ const Login = () => {
         <input
           type="password"
           placeholder="Password"
-          className="w-full p-2 mb-3 border rounded"
-          value={password}
+          className="w-full p-2 border rounded mb-4"
           onChange={(e) => setPassword(e.target.value)}
           required
         />
 
-        <button className="w-full bg-blue-600 text-white p-2 rounded">
-          Login
+        <button
+          disabled={loading}
+          className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 disabled:opacity-50"
+        >
+          {loading ? "Logging in..." : "Login"}
         </button>
       </form>
     </div>
   );
-};
-
-export default Login;
+}

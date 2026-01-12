@@ -1,30 +1,33 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Home from "./pages/Home";
 import Login from "./pages/Login";
+import Register from "./pages/Register";
+import EmployerDashboard from "./pages/employer/EmployerDashboard";
+import JobSeekerDashboard from "./pages/jobseeker/JobSeekerDashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
 
-function App() {
+export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Public */}
+        <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
 
-        {/* Temporary test route */}
-        <Route
-          path="/"
-          element={
-            <div className="text-3xl p-10 text-center">
-              Frontend is working 🚀
-            </div>
-          }
-        />
-
-        {/* Example protected route */}
         <Route
           path="/employer"
           element={
             <ProtectedRoute role="EMPLOYER">
-              <div className="p-10 text-xl">Employer Dashboard</div>
+              <EmployerDashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/jobseeker"
+          element={
+            <ProtectedRoute role="JOB_SEEKER">
+              <JobSeekerDashboard />
             </ProtectedRoute>
           }
         />
@@ -32,5 +35,3 @@ function App() {
     </BrowserRouter>
   );
 }
-
-export default App;
