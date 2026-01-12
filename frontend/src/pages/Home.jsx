@@ -3,28 +3,28 @@ import { Link } from "react-router-dom";
 export default function Home() {
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-5xl mx-auto px-6 py-20 text-center">
-        <h1 className="text-5xl font-bold text-gray-900">
-          Find Jobs. Hire Talent.
+      <div className="max-w-6xl mx-auto py-20 text-center">
+        <h1 className="text-4xl font-bold mb-4">
+          Find Your Next Job Opportunity
         </h1>
 
-        <p className="mt-6 text-lg text-gray-600">
-          A modern job portal connecting employers and job seekers.
+        <p className="text-gray-600 mb-8">
+          Browse jobs from companies, shops, and individuals.
         </p>
 
-        <div className="mt-10 flex justify-center gap-6">
+        <div className="flex justify-center gap-4">
           <Link
-            to="/login"
-            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            to="/jobs"
+            className="bg-blue-600 text-white px-6 py-3 rounded"
           >
-            Login
+            Browse Jobs
           </Link>
 
           <Link
             to="/register"
-            className="px-6 py-3 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300"
+            className="border border-blue-600 text-blue-600 px-6 py-3 rounded"
           >
-            Sign Up
+            Create Account
           </Link>
         </div>
       </div>

@@ -1,33 +1,30 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-import EmployerDashboard from "./pages/employer/EmployerDashboard";
-import JobSeekerDashboard from "./pages/jobseeker/JobSeekerDashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
+import Navbar from "./components/Navbar";
+import Home from "./pages/Home";
+import Jobs from "./pages/Jobs";
 
-export default function App() {
+
+function App() {
   return (
     <BrowserRouter>
+      <Navbar />
+
       <Routes>
-        <Route path="/" element={<Home />} />
+        <Route path="/" element={<div className="p-8">Home</div>} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/" element={<Home />} />
+        <Route path="/jobs" element={<Jobs />} />
+
 
         <Route
-          path="/employer"
+          path="/dashboard"
           element={
-            <ProtectedRoute role="EMPLOYER">
-              <EmployerDashboard />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/jobseeker"
-          element={
-            <ProtectedRoute role="JOB_SEEKER">
-              <JobSeekerDashboard />
+            <ProtectedRoute>
+              <div className="p-8">Dashboard</div>
             </ProtectedRoute>
           }
         />
@@ -35,3 +32,5 @@ export default function App() {
     </BrowserRouter>
   );
 }
+
+export default App;
