@@ -1,10 +1,17 @@
 package com.jobportal.backend.entity;
 
+import java.time.LocalDate;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 
 @Entity
@@ -15,67 +22,104 @@ public class Job {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
     private String title;
 
-    @Column(nullable = false, length = 2000)
+    @Column(length = 5000)
     private String description;
 
-    @Column(nullable = false)
     private String company;
 
-    @Column(nullable = false)
     private String location;
 
-    @Column(nullable = false)
-    private String employmentType; // FULL_TIME, PART_TIME, INTERN
+    private String employmentType; // FULL_TIME, PART_TIME, CONTRACT
 
-    // getters & setters
-    public Long getId() {
-        return id;
+    private LocalDate deadline;
+
+    @Enumerated(EnumType.STRING)
+    private JobStatus status;
+
+    @ManyToOne
+    @JoinColumn(name = "posted_by", nullable = false)
+    private User postedBy;
+
+    @PrePersist
+    public void onCreate() {
+        if (status == null) {
+            status = JobStatus.OPEN;
+        }
     }
 
-    public void setId(Long id) {
-        this.id = id;
+    // ===== GETTERS & SETTERS =====
+
+    public Long getId() {
+        return id;
     }
 
     public String getTitle() {
         return title;
     }
 
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
     public String getDescription() {
         return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
     }
 
     public String getCompany() {
         return company;
     }
 
-    public void setCompany(String company) {
-        this.company = company;
-    }
-
     public String getLocation() {
         return location;
-    }
-
-    public void setLocation(String location) {
-        this.location = location;
     }
 
     public String getEmploymentType() {
         return employmentType;
     }
 
+    public LocalDate getDeadline() {
+        return deadline;
+    }
+
+    public JobStatus getStatus() {
+        return status;
+    }
+
+    public User getPostedBy() {
+        return postedBy;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public void setCompany(String company) {
+        this.company = company;
+    }
+
+    public void setLocation(String location) {
+        this.location = location;
+    }
+
     public void setEmploymentType(String employmentType) {
         this.employmentType = employmentType;
+    }
+
+    public void setDeadline(LocalDate deadline) {
+        this.deadline = deadline;
+    }
+
+    public void setStatus(JobStatus status) {
+        this.status = status;
+    }
+
+    public void setPostedBy(User postedBy) {
+        this.postedBy = postedBy;
     }
 }
