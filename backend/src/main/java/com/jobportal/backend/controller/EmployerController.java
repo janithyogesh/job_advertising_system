@@ -2,6 +2,7 @@ package com.jobportal.backend.controller;
 
 import java.util.List;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -16,6 +17,7 @@ import com.jobportal.backend.repository.JobApplicationRepository;
 
 @RestController
 @RequestMapping("/api/employer")
+@PreAuthorize("hasRole('EMPLOYER')") // 🔒 ALL endpoints protected
 public class EmployerController {
 
     private final JobApplicationRepository applicationRepository;
@@ -24,7 +26,7 @@ public class EmployerController {
         this.applicationRepository = applicationRepository;
     }
 
-    // 🔒 View applications for a job
+    // ✅ View applications for a job
     @GetMapping("/applications/{jobId}")
     public List<ApplicationResponse> getApplicationsForJob(
             @PathVariable Long jobId) {
@@ -43,7 +45,7 @@ public class EmployerController {
                 .toList();
     }
 
-    // 🔒 APPROVE / REJECT application
+    // ✅ Approve / Reject application
     @PatchMapping("/applications/{applicationId}/status")
     public String updateApplicationStatus(
             @PathVariable Long applicationId,
