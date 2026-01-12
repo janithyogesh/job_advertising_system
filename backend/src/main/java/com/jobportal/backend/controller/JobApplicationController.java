@@ -1,11 +1,13 @@
 package com.jobportal.backend.controller;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import com.jobportal.backend.dto.JobSeekerApplicationResponse;
 import com.jobportal.backend.entity.*;
 import com.jobportal.backend.repository.*;
 
@@ -27,6 +29,7 @@ public class JobApplicationController {
         this.jobRepository = jobRepository;
     }
 
+    // ================= APPLY FOR JOB =================
     @PreAuthorize("hasRole('JOB_SEEKER')")
     @PostMapping("/apply")
     public String applyForJob(
@@ -41,7 +44,7 @@ public class JobApplicationController {
         Job job = jobRepository.findById(jobId)
                 .orElseThrow(() -> new RuntimeException("Job not found"));
 
-        // 🚫 Deadline enforcement
+        // Deadline check
         if (job.getDeadline() != null &&
             job.getDeadline().isBefore(LocalDate.now())) {
 
@@ -51,13 +54,13 @@ public class JobApplicationController {
         }
 
         if (job.getStatus() != JobStatus.OPEN) {
-            throw new RuntimeException("Job is not open for applications");
+            throw new RuntimeException("Job is not open");
         }
 
         if (applicationRepository
                 .findByUser_IdAndJob_Id(user.getId(), jobId)
                 .isPresent()) {
-            throw new RuntimeException("You already applied for this job");
+            throw new RuntimeException("You already applied");
         }
 
         JobApplication application = new JobApplication();
@@ -68,5 +71,30 @@ public class JobApplicationController {
         applicationRepository.save(application);
 
         return "Application submitted successfully";
+    }
+
+    // ================= JOB SEEKER DASHBOARD =================
+    @PreAuthorize("hasRole('JOB_SEEKER')")
+    @GetMapping("/my")
+    public List<JobSeekerApplicationResponse> getMyApplications(
+            Authentication authentication) {
+
+        String email = authentication.getName();
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        List<JobApplication> applications =
+                applicationRepository.findByUser_Id(user.getId());
+
+        return applications.stream()
+                .map(app -> new JobSeekerApplicationResponse(
+                        app.getId(),
+                        app.getJob().getTitle(),
+                        app.getJob().getCompany(),
+                        app.getStatus(),
+                        app.getAppliedAt()
+                ))
+                .toList();
     }
 }

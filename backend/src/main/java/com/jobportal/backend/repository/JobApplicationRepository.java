@@ -20,4 +20,7 @@ public interface JobApplicationRepository
 
     List<JobApplication> findByUser_Email(String email);
 
+    List<JobApplication> findByUser_Id(Long userId);
+
+
 }
