@@ -9,8 +9,9 @@ import com.jobportal.backend.entity.JobStatus;
 
 public interface JobRepository extends JpaRepository<Job, Long> {
 
-    // ✅ Employer's jobs
-    List<Job> findByPostedBy_Email(String email);
+    // 🌍 Public
     List<Job> findByStatus(JobStatus status);
 
+    // 👨‍💼 Employer
+    List<Job> findByPostedBy_Email(String email);
 }
