@@ -2,7 +2,8 @@ package com.jobportal.backend.controller;
 
 import java.io.File;
 import java.io.IOException;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.Set;
 
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -31,6 +32,13 @@ public class JobApplicationController {
     private final CvFileRepository cvFileRepository;
 
     private static final String UPLOAD_DIR = "uploads/cv/";
+    private static final long MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+    private static final Set<String> ALLOWED_TYPES = Set.of(
+            "application/pdf",
+            "text/plain",
+            "image/png",
+            "image/jpeg"
+    );
 
     public JobApplicationController(
             JobApplicationRepository applicationRepository,
@@ -51,51 +59,71 @@ public class JobApplicationController {
             @RequestParam MultipartFile cv,
             Authentication authentication) throws IOException {
 
-        if (!cv.getContentType().equals("application/pdf")) {
-            throw new RuntimeException("Only PDF files allowed");
+        // ===== FILE VALIDATION =====
+        if (cv.isEmpty()) {
+            throw new RuntimeException("CV file is required");
         }
 
-        if (cv.getSize() > 5 * 1024 * 1024) {
+        if (!ALLOWED_TYPES.contains(cv.getContentType())) {
+            throw new RuntimeException("Invalid CV file type");
+        }
+
+        if (cv.getSize() > MAX_FILE_SIZE) {
             throw new RuntimeException("File size exceeds 5MB");
         }
 
+        // ===== USER =====
         String email = authentication.getName();
 
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
+        // ===== JOB =====
         Job job = jobRepository.findById(jobId)
                 .orElseThrow(() -> new RuntimeException("Job not found"));
 
-        if (job.getDeadline().isBefore(LocalDate.now())) {
+        // ===== DEADLINE CHECK (FIXED) =====
+        if (job.getDeadline().isBefore(LocalDateTime.now())) {
             throw new RuntimeException("Job deadline has passed");
         }
 
+        // ===== DUPLICATE CHECK =====
         if (applicationRepository
                 .findByUser_IdAndJob_Id(user.getId(), jobId)
                 .isPresent()) {
-            throw new RuntimeException("Already applied");
+            throw new RuntimeException("You have already applied for this job");
         }
 
+        // ===== SAVE APPLICATION =====
         JobApplication application = new JobApplication();
         application.setUser(user);
         application.setJob(job);
 
         applicationRepository.save(application);
 
+        // ===== FILE STORAGE =====
         File dir = new File(UPLOAD_DIR);
-        if (!dir.exists()) dir.mkdirs();
+        if (!dir.exists()) {
+            dir.mkdirs();
+        }
 
-        String filePath = UPLOAD_DIR + application.getId() + "_" + cv.getOriginalFilename();
+        String filePath = UPLOAD_DIR
+                + application.getId()
+                + "_"
+                + cv.getOriginalFilename();
+
         cv.transferTo(new File(filePath));
 
+        // ===== SAVE CV METADATA =====
         CvFile cvFile = new CvFile();
         cvFile.setFileName(cv.getOriginalFilename());
+        cvFile.setFileType(cv.getContentType());
         cvFile.setFilePath(filePath);
+        cvFile.setFileSize(cv.getSize());
         cvFile.setApplication(application);
 
         cvFileRepository.save(cvFile);
 
-        return "Application submitted with CV successfully";
+        return "Application submitted successfully";
     }
 }

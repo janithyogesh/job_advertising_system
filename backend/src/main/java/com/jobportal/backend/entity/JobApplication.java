@@ -1,5 +1,6 @@
 package com.jobportal.backend.entity;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import jakarta.persistence.CascadeType;
@@ -22,20 +23,36 @@ public class JobApplication {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    // ===== SNAPSHOT APPLICANT DETAILS =====
+    @Column(nullable = false)
+    private String applicantName;
 
+    @Column(nullable = false)
+    private String applicantEmail;
+
+    @Column(nullable = false)
+    private String applicantPhone;
+
+    @Column(nullable = false)
+    private LocalDate applicantBirthDate;
+
+    // ===== RELATIONS =====
     @ManyToOne
     @JoinColumn(name = "job_id", nullable = false)
     private Job job;
 
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+
+    // ===== STATUS =====
     @Column(nullable = false)
     private String status;
 
-    @Column(name = "applied_at")
+    @Column(nullable = false)
     private LocalDateTime appliedAt;
 
+    // ===== CV =====
     @OneToOne(mappedBy = "application", cascade = CascadeType.ALL)
     private CvFile cvFile;
 
@@ -47,18 +64,34 @@ public class JobApplication {
         }
     }
 
-    // ===== getters & setters =====
+    // ===== GETTERS & SETTERS =====
 
     public Long getId() {
         return id;
     }
 
-    public User getUser() {
-        return user;
+    public String getApplicantName() {
+        return applicantName;
+    }
+
+    public String getApplicantEmail() {
+        return applicantEmail;
+    }
+
+    public String getApplicantPhone() {
+        return applicantPhone;
+    }
+
+    public LocalDate getApplicantBirthDate() {
+        return applicantBirthDate;
     }
 
     public Job getJob() {
         return job;
+    }
+
+    public User getUser() {
+        return user;
     }
 
     public String getStatus() {
@@ -73,12 +106,28 @@ public class JobApplication {
         return cvFile;
     }
 
-    public void setUser(User user) {
-        this.user = user;
+    public void setApplicantName(String applicantName) {
+        this.applicantName = applicantName;
+    }
+
+    public void setApplicantEmail(String applicantEmail) {
+        this.applicantEmail = applicantEmail;
+    }
+
+    public void setApplicantPhone(String applicantPhone) {
+        this.applicantPhone = applicantPhone;
+    }
+
+    public void setApplicantBirthDate(LocalDate applicantBirthDate) {
+        this.applicantBirthDate = applicantBirthDate;
     }
 
     public void setJob(Job job) {
         this.job = job;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
     }
 
     public void setStatus(String status) {

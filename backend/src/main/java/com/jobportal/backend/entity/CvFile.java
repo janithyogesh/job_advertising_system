@@ -21,13 +21,19 @@ public class CvFile {
     private String fileName;
 
     @Column(nullable = false)
+    private String fileType;
+
+    @Column(nullable = false)
     private String filePath;
+
+    @Column(nullable = false)
+    private long fileSize;
 
     @OneToOne
     @JoinColumn(name = "application_id", nullable = false)
     private JobApplication application;
 
-    // ===== getters & setters =====
+    // ===== GETTERS & SETTERS =====
 
     public Long getId() {
         return id;
@@ -37,24 +43,36 @@ public class CvFile {
         return fileName;
     }
 
+    public String getFileType() {
+        return fileType;
+    }
+
     public String getFilePath() {
         return filePath;
+    }
+
+    public long getFileSize() {
+        return fileSize;
     }
 
     public JobApplication getApplication() {
         return application;
     }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
-
     public void setFileName(String fileName) {
         this.fileName = fileName;
     }
 
+    public void setFileType(String fileType) {
+        this.fileType = fileType;
+    }
+
     public void setFilePath(String filePath) {
         this.filePath = filePath;
+    }
+
+    public void setFileSize(long fileSize) {
+        this.fileSize = fileSize;
     }
 
     public void setApplication(JobApplication application) {
