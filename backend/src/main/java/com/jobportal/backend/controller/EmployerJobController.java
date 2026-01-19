@@ -2,18 +2,22 @@ package com.jobportal.backend.controller;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import org.springframework.security.core.Authentication;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.jobportal.backend.entity.Job;
 import com.jobportal.backend.entity.JobCategory;
@@ -71,23 +75,27 @@ public class EmployerJobController {
 
         // ===== IMAGE VALIDATION =====
         if (image.isEmpty()) {
-            throw new RuntimeException("Job image is required");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Job image is required");
         }
 
-        if (!ALLOWED_IMAGE_TYPES.contains(image.getContentType())) {
-            throw new RuntimeException("Invalid image type");
+        if (image.getContentType() == null || !ALLOWED_IMAGE_TYPES.contains(image.getContentType())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid image type");
         }
 
         // ===== EMPLOYER =====
+        if (authentication == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Authentication required");
+        }
+
         User employer = userRepository.findByEmail(authentication.getName())
-                .orElseThrow(() -> new RuntimeException("Employer not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Employer not found"));
 
         // ===== CATEGORY =====
         JobCategory category = categoryRepository.findById(categoryId)
-                .orElseThrow(() -> new RuntimeException("Category not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Category not found"));
 
         if (!category.isActive()) {
-            throw new RuntimeException("Category is inactive");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Category is inactive");
         }
 
         // ===== DEADLINE (FIXED) =====
@@ -95,20 +103,36 @@ public class EmployerJobController {
         try {
             parsedDeadline = LocalDateTime.parse(deadline, DEADLINE_FORMATTER);
         } catch (Exception e) {
-            throw new RuntimeException("Invalid deadline format");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid deadline format");
         }
 
         if (parsedDeadline.isBefore(LocalDateTime.now())) {
-            throw new RuntimeException("Deadline must be in the future");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Deadline must be in the future");
         }
 
         // ===== SAVE IMAGE =====
         File dir = new File(IMAGE_DIR);
         if (!dir.exists()) dir.mkdirs();
 
+        String sanitizedFilename = Optional.ofNullable(image.getOriginalFilename())
+                .map(name -> Paths.get(name).getFileName().toString())
+                .filter(name -> !name.isBlank())
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.BAD_REQUEST,
+                        "Job image filename is required"
+                ));
+
         String imagePath =
-                IMAGE_DIR + System.currentTimeMillis() + "_" + image.getOriginalFilename();
-        image.transferTo(new File(imagePath));
+                IMAGE_DIR + System.currentTimeMillis() + "_" + sanitizedFilename;
+        try {
+            image.transferTo(new File(imagePath));
+        } catch (IOException e) {
+            throw new ResponseStatusException(
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Failed to save job image",
+                    e
+            );
+        }
 
         // ===== CREATE JOB =====
         Job job = new Job();
