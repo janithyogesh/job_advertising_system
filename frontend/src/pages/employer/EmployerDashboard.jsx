@@ -2,14 +2,15 @@ import { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import api from "../../api/axios";
+import AddJobModal from "./AddJobModal";
 
 export default function EmployerDashboard() {
   const { user } = useAuth();
 
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showModal, setShowModal] = useState(false);
 
-  // 🔐 Protect route
   if (!user || user.role !== "EMPLOYER") {
     return <Navigate to="/login" replace />;
   }
@@ -22,7 +23,7 @@ export default function EmployerDashboard() {
     try {
       const res = await api.get("/employer/jobs");
       setJobs(res.data);
-    } catch (err) {
+    } catch {
       alert("Failed to load jobs");
     } finally {
       setLoading(false);
@@ -32,18 +33,18 @@ export default function EmployerDashboard() {
   return (
     <div className="p-6 max-w-6xl mx-auto">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Employer Dashboard</h1>
+        <h1 className="text-3xl font-bold">
+          Employer Dashboard
+        </h1>
 
-        {/* ADD JOB BUTTON */}
         <button
           className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
-          onClick={() => alert("Add Job form coming next")}
+          onClick={() => setShowModal(true)}
         >
           + Add Job
         </button>
       </div>
 
-      {/* JOB LIST */}
       {loading ? (
         <p>Loading jobs...</p>
       ) : jobs.length === 0 ? (
@@ -82,6 +83,13 @@ export default function EmployerDashboard() {
             </div>
           ))}
         </div>
+      )}
+
+      {showModal && (
+        <AddJobModal
+          onClose={() => setShowModal(false)}
+          onJobAdded={fetchMyJobs}
+        />
       )}
     </div>
   );

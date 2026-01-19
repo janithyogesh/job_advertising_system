@@ -4,7 +4,9 @@ import java.util.List;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationProvider;
+import static org.springframework.security.config.Customizer.withDefaults;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
@@ -31,14 +33,26 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         http
-            // ✅ ENABLE CORS
-            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+            // ✅ CORS (REQUIRED)
+            .cors(withDefaults())
 
-            // ❌ Disable CSRF for JWT
+            // ❌ Disable CSRF (JWT)
             .csrf(csrf -> csrf.disable())
 
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/**").permitAll()
+                // ✅ ALWAYS allow preflight
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
+                // ✅ REQUIRED for multipart error handling
+                .requestMatchers("/error").permitAll()
+
+                // 🌍 Public
+                .requestMatchers("/api/auth/**", "/api/categories").permitAll()
+
+                // 👨‍💼 Employer only
+                .requestMatchers("/api/employer/**").hasRole("EMPLOYER")
+
+                // 🔐 Everything else
                 .anyRequest().authenticated()
             )
 
@@ -52,17 +66,20 @@ public class SecurityConfig {
         return http.build();
     }
 
-    // ✅ CORS CONFIGURATION
+    // ✅ CORS CONFIG
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
 
         config.setAllowedOrigins(List.of("http://localhost:5173"));
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+        config.setAllowedMethods(
+            List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
+        );
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
 
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        UrlBasedCorsConfigurationSource source =
+                new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
 
         return source;

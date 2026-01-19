@@ -3,10 +3,10 @@ package com.jobportal.backend.controller;
 import java.io.File;
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Set;
 
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -25,7 +25,6 @@ import com.jobportal.backend.repository.UserRepository;
 
 @RestController
 @RequestMapping("/api/employer/jobs")
-@PreAuthorize("hasRole('EMPLOYER')")
 public class EmployerJobController {
 
     private final JobRepository jobRepository;
@@ -36,6 +35,10 @@ public class EmployerJobController {
     private static final Set<String> ALLOWED_IMAGE_TYPES = Set.of(
             "image/png", "image/jpeg", "image/jpg"
     );
+
+    // ✅ Formatter for <input type="datetime-local" />
+    private static final DateTimeFormatter DEADLINE_FORMATTER =
+            DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
 
     public EmployerJobController(
             JobRepository jobRepository,
@@ -59,10 +62,12 @@ public class EmployerJobController {
             @RequestParam String contactEmail,
             @RequestParam String contactPhone,
             @RequestParam Long categoryId,
-            @RequestParam String deadline, // ISO string
+            @RequestParam String deadline,
             @RequestParam MultipartFile image,
             Authentication authentication
     ) throws IOException {
+
+        System.out.println("🔥 CREATE JOB ENDPOINT HIT");
 
         // ===== IMAGE VALIDATION =====
         if (image.isEmpty()) {
@@ -85,8 +90,14 @@ public class EmployerJobController {
             throw new RuntimeException("Category is inactive");
         }
 
-        // ===== DEADLINE =====
-        LocalDateTime parsedDeadline = LocalDateTime.parse(deadline);
+        // ===== DEADLINE (FIXED) =====
+        LocalDateTime parsedDeadline;
+        try {
+            parsedDeadline = LocalDateTime.parse(deadline, DEADLINE_FORMATTER);
+        } catch (Exception e) {
+            throw new RuntimeException("Invalid deadline format");
+        }
+
         if (parsedDeadline.isBefore(LocalDateTime.now())) {
             throw new RuntimeException("Deadline must be in the future");
         }
@@ -95,7 +106,8 @@ public class EmployerJobController {
         File dir = new File(IMAGE_DIR);
         if (!dir.exists()) dir.mkdirs();
 
-        String imagePath = IMAGE_DIR + System.currentTimeMillis() + "_" + image.getOriginalFilename();
+        String imagePath =
+                IMAGE_DIR + System.currentTimeMillis() + "_" + image.getOriginalFilename();
         image.transferTo(new File(imagePath));
 
         // ===== CREATE JOB =====
