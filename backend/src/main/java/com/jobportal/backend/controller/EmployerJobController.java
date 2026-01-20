@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -46,7 +47,15 @@ public class EmployerJobController {
 
     // ✅ Formatter for <input type="datetime-local" />
     private static final DateTimeFormatter DEADLINE_FORMATTER =
-            DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
+            new DateTimeFormatterBuilder()
+                    .appendPattern("yyyy-MM-dd'T'HH:mm")
+                    .optionalStart()
+                    .appendPattern(":ss")
+                    .optionalStart()
+                    .appendPattern(".SSS")
+                    .optionalEnd()
+                    .optionalEnd()
+                    .toFormatter();
 
     public EmployerJobController(
             JobRepository jobRepository,
@@ -105,12 +114,7 @@ public class EmployerJobController {
         }
 
         // ===== DEADLINE (FIXED) =====
-        LocalDateTime parsedDeadline;
-        try {
-            parsedDeadline = LocalDateTime.parse(deadline, DEADLINE_FORMATTER);
-        } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid deadline format");
-        }
+        LocalDateTime parsedDeadline = parseDeadline(deadline);
 
         if (parsedDeadline.isBefore(LocalDateTime.now())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Deadline must be in the future");
@@ -157,6 +161,21 @@ public class EmployerJobController {
         job.setStatus(JobStatus.OPEN);
 
         return jobRepository.save(job);
+    }
+
+    private LocalDateTime parseDeadline(String deadline) {
+        if (deadline == null || deadline.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Deadline is required");
+        }
+
+        try {
+            return LocalDateTime.parse(deadline.trim(), DEADLINE_FORMATTER);
+        } catch (Exception e) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Invalid deadline format. Use yyyy-MM-dd'T'HH:mm"
+            );
+        }
     }
 
     // ================= LIST EMPLOYER JOBS =================
