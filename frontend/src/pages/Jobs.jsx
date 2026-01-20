@@ -12,6 +12,18 @@ export default function Jobs() {
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [loading, setLoading] = useState(true);
+  const highlights = [
+    { label: "Remote-friendly roles", value: "3,240" },
+    { label: "Companies actively hiring", value: "980" },
+    { label: "New roles this week", value: "420" },
+  ];
+  const suggestedSearches = [
+    "Product Design",
+    "Frontend",
+    "Finance",
+    "Project Manager",
+    "Customer Support",
+  ];
 
   useEffect(() => {
     loadCategories();
@@ -66,6 +78,56 @@ export default function Jobs() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <div className="bg-white border-b">
+        <div className="max-w-6xl mx-auto p-6 space-y-6">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+              <h1 className="text-3xl font-bold text-slate-900">
+                Discover your next role
+              </h1>
+              <p className="text-slate-500">
+                Filter by category or status, and browse curated opportunities.
+              </p>
+            </div>
+            <Link
+              to="/register"
+              className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700"
+            >
+              Create profile
+            </Link>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-3">
+            {highlights.map((item) => (
+              <div
+                key={item.label}
+                className="rounded-2xl border border-slate-100 bg-slate-50 p-4"
+              >
+                <p className="text-2xl font-bold text-slate-900">
+                  {item.value}
+                </p>
+                <p className="text-sm text-slate-500">{item.label}</p>
+              </div>
+            ))}
+          </div>
+
+          <div>
+            <p className="text-xs uppercase tracking-[0.2em] text-slate-400 font-semibold">
+              Suggested searches
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {suggestedSearches.map((search) => (
+                <span
+                  key={search}
+                  className="text-xs font-semibold bg-slate-100 text-slate-600 px-3 py-1 rounded-full"
+                >
+                  {search}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
       <div className="max-w-6xl mx-auto p-6">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
           <div>
