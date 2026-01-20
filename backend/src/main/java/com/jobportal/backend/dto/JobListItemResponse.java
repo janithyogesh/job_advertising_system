@@ -10,7 +10,7 @@ public class JobListItemResponse {
     private String location;
     private String employmentType;
     private String salary;
-    private String jobImagePath;
+    private String jobImageUrl;
     private String categoryName;
     private LocalDateTime deadline;
     private String status;
@@ -25,7 +25,7 @@ public class JobListItemResponse {
             String location,
             String employmentType,
             String salary,
-            String jobImagePath,
+            String jobImageUrl,
             String categoryName,
             LocalDateTime deadline,
             String status) {
@@ -35,7 +35,7 @@ public class JobListItemResponse {
         this.location = location;
         this.employmentType = employmentType;
         this.salary = salary;
-        this.jobImagePath = jobImagePath;
+        this.jobImageUrl = jobImageUrl;
         this.categoryName = categoryName;
         this.deadline = deadline;
         this.status = status;
@@ -65,8 +65,8 @@ public class JobListItemResponse {
         return salary;
     }
 
-    public String getJobImagePath() {
-        return jobImagePath;
+    public String getJobImageUrl() {
+        return jobImageUrl;
     }
 
     public String getCategoryName() {
@@ -105,8 +105,8 @@ public class JobListItemResponse {
         this.salary = salary;
     }
 
-    public void setJobImagePath(String jobImagePath) {
-        this.jobImagePath = jobImagePath;
+    public void setJobImageUrl(String jobImageUrl) {
+        this.jobImageUrl = jobImageUrl;
     }
 
     public void setCategoryName(String categoryName) {

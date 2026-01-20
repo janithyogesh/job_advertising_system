@@ -2,7 +2,6 @@ package com.jobportal.backend.controller;
 
 import java.util.List;
 
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -16,7 +15,6 @@ import com.jobportal.backend.repository.JobCategoryRepository;
 
 @RestController
 @RequestMapping("/api/admin/categories")
-@PreAuthorize("hasRole('ADMIN')")
 public class JobCategoryController {
 
     private final JobCategoryRepository categoryRepository;
