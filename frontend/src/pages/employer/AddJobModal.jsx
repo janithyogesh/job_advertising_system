@@ -38,6 +38,34 @@ export default function AddJobModal({ onClose, onJobAdded }) {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
+  const getErrorMessage = (err) => {
+    if (!err) return "Failed to post job";
+
+    const responseData = err.response?.data;
+
+    if (typeof responseData === "string" && responseData.trim()) {
+      return responseData;
+    }
+
+    if (responseData?.message) {
+      return responseData.message;
+    }
+
+    if (responseData?.error) {
+      return responseData.error;
+    }
+
+    if (responseData && typeof responseData === "object") {
+      return JSON.stringify(responseData);
+    }
+
+    if (err.message) {
+      return err.message;
+    }
+
+    return "Failed to post job";
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -61,7 +89,7 @@ export default function AddJobModal({ onClose, onJobAdded }) {
       onJobAdded();
       onClose();
     } catch (err) {
-      alert(err.response?.data || "Failed to post job");
+      alert(getErrorMessage(err));
     } finally {
       setLoading(false);
     }
