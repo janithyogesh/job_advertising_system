@@ -10,6 +10,9 @@ export default function EmployerDashboard() {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [selectedJobId, setSelectedJobId] = useState(null);
+  const [applications, setApplications] = useState([]);
+  const [loadingApplications, setLoadingApplications] = useState(false);
 
   if (!user || user.role !== "EMPLOYER") {
     return <Navigate to="/login" replace />;
@@ -27,6 +30,52 @@ export default function EmployerDashboard() {
       alert("Failed to load jobs");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchApplications = async (jobId) => {
+    try {
+      setLoadingApplications(true);
+      setSelectedJobId(jobId);
+      const res = await api.get(`/employer/jobs/${jobId}/applications`);
+      setApplications(res.data);
+    } catch {
+      alert("Failed to load applications");
+    } finally {
+      setLoadingApplications(false);
+    }
+  };
+
+  const downloadCv = async (applicationId) => {
+    try {
+      const res = await api.get(
+        `/employer/applications/${applicationId}/cv`,
+        {
+          responseType: "blob",
+        }
+      );
+
+      const disposition = res.headers["content-disposition"];
+      let fileName = `cv-${applicationId}`;
+
+      if (disposition) {
+        const match = disposition.match(/filename="(.+)"/);
+        if (match?.[1]) {
+          fileName = match[1];
+        }
+      }
+
+      const blob = new Blob([res.data]);
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", fileName);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch {
+      alert("Failed to download CV");
     }
   };
 
@@ -80,6 +129,75 @@ export default function EmployerDashboard() {
               >
                 {job.status}
               </span>
+
+              <div className="mt-4">
+                <button
+                  className="text-blue-600 text-sm hover:underline"
+                  onClick={() => fetchApplications(job.id)}
+                >
+                  View Applicants
+                </button>
+              </div>
+
+              {selectedJobId === job.id && (
+                <div className="mt-4 border-t pt-4">
+                  {loadingApplications ? (
+                    <p className="text-sm text-gray-500">
+                      Loading applications...
+                    </p>
+                  ) : applications.length === 0 ? (
+                    <p className="text-sm text-gray-500">
+                      No applications yet.
+                    </p>
+                  ) : (
+                    <div className="space-y-3">
+                      {applications.map((application) => (
+                        <div
+                          key={application.applicationId}
+                          className="border rounded p-3 bg-gray-50"
+                        >
+                          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+                            <div>
+                              <p className="font-medium">
+                                {application.applicantName}
+                              </p>
+                              <p className="text-sm text-gray-600">
+                                {application.applicantEmail} •{" "}
+                                {application.applicantPhone}
+                              </p>
+                              <p className="text-sm text-gray-500">
+                                Birth date:{" "}
+                                {new Date(
+                                  application.applicantBirthDate
+                                ).toLocaleDateString()}
+                              </p>
+                            </div>
+                            <div className="text-sm text-gray-600">
+                              Applied:{" "}
+                              {new Date(
+                                application.appliedAt
+                              ).toLocaleString()}
+                            </div>
+                          </div>
+                          <div className="flex items-center justify-between mt-2">
+                            <span className="text-xs px-2 py-1 rounded-full bg-blue-100 text-blue-700">
+                              {application.status}
+                            </span>
+                            <button
+                              className="text-sm text-blue-600 hover:underline"
+                              onClick={() =>
+                                downloadCv(application.applicationId)
+                              }
+                            >
+                              Download CV
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           ))}
         </div>

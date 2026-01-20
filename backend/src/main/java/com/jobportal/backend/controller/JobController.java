@@ -1,20 +1,21 @@
 package com.jobportal.backend.controller;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.HttpStatus;
 
+import com.jobportal.backend.dto.JobDetailResponse;
 import com.jobportal.backend.dto.JobListItemResponse;
 import com.jobportal.backend.dto.JobListResponse;
 import com.jobportal.backend.entity.Job;
-import com.jobportal.backend.entity.JobStatus;
 import com.jobportal.backend.repository.JobRepository;
 
 @RestController
@@ -53,7 +54,7 @@ public class JobController {
                         job.getLocation(),
                         job.getEmploymentType(),
                         job.getSalary(),
-                        job.getJobImagePath(),
+                        buildJobImageUrl(job.getJobImagePath()),
                         job.getCategory().getName(),
                         job.getDeadline(),
                         job.getDeadline().isBefore(now) ? "EXPIRED" : "ACTIVE"
@@ -68,17 +69,40 @@ public class JobController {
         );
     }
 
-    // 🔒 Employer – close job manually
-    @PatchMapping("/{jobId}/close")
-    @PreAuthorize("hasRole('EMPLOYER')")
-    public String closeJob(@PathVariable Long jobId) {
-
+    @GetMapping("/{jobId}")
+    public JobDetailResponse getJobDetail(@PathVariable Long jobId) {
         Job job = jobRepository.findById(jobId)
-                .orElseThrow(() -> new RuntimeException("Job not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Job not found"));
 
-        job.setStatus(JobStatus.CLOSED);
-        jobRepository.save(job);
+        LocalDateTime now = LocalDateTime.now();
+        String status = job.getDeadline().isBefore(now) ? "EXPIRED" : "ACTIVE";
 
-        return "Job closed successfully";
+        return new JobDetailResponse(
+                job.getId(),
+                job.getTitle(),
+                job.getDescription(),
+                job.getCompany(),
+                job.getLocation(),
+                job.getEmploymentType(),
+                job.getSalary(),
+                job.getContactEmail(),
+                job.getContactPhone(),
+                job.getCategory().getName(),
+                job.getDeadline(),
+                buildJobImageUrl(job.getJobImagePath()),
+                status
+        );
     }
+
+    private String buildJobImageUrl(String jobImagePath) {
+        if (jobImagePath == null || jobImagePath.isBlank()) {
+            return null;
+        }
+        Path fileName = Paths.get(jobImagePath).getFileName();
+        if (fileName == null) {
+            return null;
+        }
+        return "/api/files/jobs/" + fileName;
+    }
+
 }

@@ -6,6 +6,8 @@ import java.time.LocalDateTime;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -46,8 +48,9 @@ public class JobApplication {
     private User user;
 
     // ===== STATUS =====
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private String status;
+    private ApplicationStatus status;
 
     @Column(nullable = false)
     private LocalDateTime appliedAt;
@@ -60,7 +63,7 @@ public class JobApplication {
     public void onCreate() {
         this.appliedAt = LocalDateTime.now();
         if (this.status == null) {
-            this.status = "APPLIED";
+            this.status = ApplicationStatus.APPLIED;
         }
     }
 
@@ -94,7 +97,7 @@ public class JobApplication {
         return user;
     }
 
-    public String getStatus() {
+    public ApplicationStatus getStatus() {
         return status;
     }
 
@@ -130,7 +133,7 @@ public class JobApplication {
         this.user = user;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(ApplicationStatus status) {
         this.status = status;
     }
 

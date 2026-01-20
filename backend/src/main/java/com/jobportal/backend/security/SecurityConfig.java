@@ -7,7 +7,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationProvider;
 import static org.springframework.security.config.Customizer.withDefaults;
-import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -16,7 +15,6 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 @Configuration
-@EnableMethodSecurity
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthFilter;
@@ -47,10 +45,21 @@ public class SecurityConfig {
                 .requestMatchers("/error").permitAll()
 
                 // 🌍 Public
-                .requestMatchers("/api/auth/**", "/api/categories").permitAll()
+                .requestMatchers(
+                        "/api/auth/**",
+                        "/api/categories",
+                        "/api/jobs/**",
+                        "/api/files/jobs/**"
+                ).permitAll()
+
+                // 👨‍💼 Admin only
+                .requestMatchers("/api/admin/**").hasRole("ADMIN")
 
                 // 👨‍💼 Employer only
                 .requestMatchers("/api/employer/**").hasRole("EMPLOYER")
+
+                // 🧑‍💼 Job seeker only
+                .requestMatchers("/api/jobseeker/**").hasRole("JOB_SEEKER")
 
                 // 🔐 Everything else
                 .anyRequest().authenticated()
