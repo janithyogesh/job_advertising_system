@@ -10,8 +10,8 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: none
-    show-sql: false
+      ddl-auto: update   # 🔥 FIX
+    show-sql: true
 
   servlet:
     multipart:

@@ -1,20 +1,24 @@
 package com.jobportal.security;
 
-import com.jobportal.model.UserAccount;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.security.Keys;
 import java.nio.charset.StandardCharsets;
-import java.security.Key;
 import java.time.Duration;
 import java.util.Date;
+
+import javax.crypto.SecretKey;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import com.jobportal.model.UserAccount;
+
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.Keys;
+
 @Service
 public class JwtService {
-    private final Key key;
+
+    private final SecretKey key;
     private final Duration expiration;
 
     public JwtService(
@@ -25,22 +29,26 @@ public class JwtService {
         this.expiration = expiration;
     }
 
+    // ================= TOKEN GENERATION =================
     public String generateToken(UserAccount user) {
+
         Date now = new Date();
         Date expiry = new Date(now.getTime() + expiration.toMillis());
 
         return Jwts.builder()
-                .subject(user.getEmail())
+                .subject(user.getEmail())          // ✔ new API
                 .claim("role", user.getRole().name())
                 .claim("fullName", user.getFullName())
                 .issuedAt(now)
                 .expiration(expiry)
-                .signWith(key, SignatureAlgorithm.HS256)
+                .signWith(key)                     // ✔ algorithm inferred
                 .compact();
     }
 
+    // ================= TOKEN PARSING =================
     public Claims parseClaims(String token) {
-        return Jwts.parser()
+
+        return Jwts.parser()        // ✅ CORRECT for jjwt 0.12.x
                 .verifyWith(key)
                 .build()
                 .parseSignedClaims(token)
