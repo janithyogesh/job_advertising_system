@@ -10,40 +10,39 @@ export const AuthProvider = ({ children }) => {
   );
 
   useEffect(() => {
-  if (!token) return;
+    if (!token) return;
 
-  try {
-    const decoded = jwtDecode(token);
+    try {
+      const decoded = jwtDecode(token);
 
-    console.log("✅ DECODED TOKEN:", decoded); // 👈 ADD THIS
+      let role = null;
 
-    let role = null;
+      // ✅ Case 1: role exists
+      if (decoded.role) {
+        role = decoded.role.replace("ROLE_", "");
+      }
 
-    // ✅ Case 1: role exists
-    if (decoded.role) {
-      role = decoded.role.replace("ROLE_", "");
+      // ✅ Case 2: authorities array
+      if (!role && decoded.authorities?.length) {
+        role = decoded.authorities[0].replace("ROLE_", "");
+      }
+
+      if (!role) {
+        throw new Error("Role not found in token");
+      }
+
+      setUser({
+        email: decoded.sub,
+        role,
+        name: decoded.fullName,
+      });
+
+      localStorage.setItem("token", token);
+    } catch (err) {
+      console.error("Invalid token", err);
+      logout();
     }
-
-    // ✅ Case 2: authorities array
-    if (!role && decoded.authorities?.length) {
-      role = decoded.authorities[0].replace("ROLE_", "");
-    }
-
-    if (!role) {
-      throw new Error("Role not found in token");
-    }
-
-    setUser({
-      email: decoded.sub,
-      role,
-    });
-
-    localStorage.setItem("token", token);
-  } catch (err) {
-    console.error("Invalid token", err);
-    logout();
-  }
-}, [token]);
+  }, [token]);
 
 
   const login = (jwtToken) => {
